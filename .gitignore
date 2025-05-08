@@ -1,0 +1,36 @@
+
+venv/
+*.pyc
+__pycache__/
+
+# Конфиденциальные файлы
+.env
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Файлы IDE и редакторов
+.vscode/
+.idea/
+*.iml
+
+# Node.js модули (если используются)
+node_modules/
+
+# Файлы, сгенерированные Appium или Selenium
+*.xml
+page_source.xml
+
+# Базы данных и резервные файлы
+*.sqlite3
+*.db
+*.bak
+
+# Системные файлы macOS
+.DS_Store
+test_code.py
+page_source.xml
+chek_element.py
