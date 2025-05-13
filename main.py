@@ -26,7 +26,7 @@ class AccountLoader(QWidget):
         self.btn_start.clicked.connect(self.start_add_accaounts)
         self.layout.addWidget(self.btn_start)
 
-        # Новая кнопка для регистрации аккаунта
+        # Кнопка для регистрации аккаунта
         self.btn_register = QPushButton("Зарегистрировать аккаунт")
         self.btn_register.clicked.connect(self.register_account)
         self.layout.addWidget(self.btn_register)
@@ -36,7 +36,7 @@ class AccountLoader(QWidget):
         self.file_path = ""
 
     def browse_file(self):
-        '''Подается txt файл с данными'''
+        '''Подается txt файл с данными аккаунтов'''
         path, _ = QFileDialog.getOpenFileName(self, "Выбери файл", "", "Text Files (*.txt)")
         if path:
             self.file_path = path

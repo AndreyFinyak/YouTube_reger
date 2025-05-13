@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.types import Enum
+from sqlalchemy import Enum
 from config import DB_SETTINGS
 from enum import Enum as PyEnum
 
@@ -26,7 +26,7 @@ class Account(Base):
     password = Column(String(100), nullable=False)
     recovery_email = Column(String(100), nullable=False)
     recovery_password = Column(String(100), nullable=False)
-    status = Column(Enum(StatusEnum), nullable=True)  
+    status = Column(Enum(StatusEnum), nullable=True)
 
 # Выполнить создание таблиц (один раз)
 Base.metadata.create_all(engine)

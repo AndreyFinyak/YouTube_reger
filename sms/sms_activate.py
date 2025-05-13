@@ -1,27 +1,29 @@
 import requests
 import os
-from dotenv import load_dotenv
 import time
+import sys
+import traceback
+from dotenv import load_dotenv
+from proxy_config.proxy_conf import get_next_proxy
 
 load_dotenv()
 
 # Загрузка API-ключа из переменных окружения
-API_KEY = os.getenv("SMS_ACTIVATE_API_KEY")  # Убедитесь, что ключ API добавлен в .env файл
-
+API_KEY = os.getenv("SMS_ACTIVATE_API_KEY")
 if not API_KEY:
     print("❌ API-ключ не найден. Убедитесь, что он указан в файле .env.")
-    exit(1)
+    sys.exit(1)
 
 BASE_URL = "https://sms-activate.org/stubs/handler_api.php"
 
-def get_phone_number(service="go", country=6):
-    """
-    Получение номера телефона через SMS-активацию.
+host, port, login, password = get_next_proxy().split(":")
+proxies = {
+    'http': f'http://{login}:{password}@{host}:{port}',
+    'https': f'http://{login}:{password}@{host}:{port}',
+}
 
-    :param service: Код сервиса (например, 'go' для Google)
-    :param country: Код страны (6 для Индонезии)
-    :return: Кортеж (id активации, номер телефона) или None в случае ошибки
-    """
+
+def get_phone_number(service="go", country=6, max_price=0.15):
     try:
         response = requests.get(
             BASE_URL,
@@ -29,8 +31,9 @@ def get_phone_number(service="go", country=6):
                 "api_key": API_KEY,
                 "action": "getNumber",
                 "service": service,
-                "country": country
-            }
+                "country": country,
+                "maxPrice": max_price
+            }, proxies=proxies
         )
         if response.status_code == 200:
             result = response.text
@@ -38,10 +41,13 @@ def get_phone_number(service="go", country=6):
 
             if result.startswith("ACCESS_NUMBER"):
                 parts = result.split(":")
-                activation_id = parts[1]
-                phone_number = parts[2]
-                print(f"✅ Получен номер: {phone_number}, ID активации: {activation_id}")
-                return activation_id, phone_number
+                if len(parts) >= 3:
+                    activation_id = parts[1]
+                    phone_number = parts[2]
+                    print(f"✅ Получен номер: {phone_number}, ID активации: {activation_id}")
+                    return activation_id, phone_number
+                else:
+                    print(f"❌ Неверный формат ответа: {result}")
             elif result.startswith("NO_NUMBERS"):
                 print("❌ Нет доступных номеров.")
             elif result.startswith("NO_BALANCE"):
@@ -52,16 +58,10 @@ def get_phone_number(service="go", country=6):
             print(f"❌ Ошибка HTTP: {response.status_code}")
     except Exception as e:
         print(f"❌ Ошибка при получении номера: {e}")
+        traceback.print_exc()
     return None
 
 def set_status(activation_id, status):
-    """
-    Установка статуса активации.
-
-    :param activation_id: ID активации
-    :param status: Статус (1 - готов, 3 - отмена, 6 - завершено)
-    :return: True, если статус успешно установлен, иначе False
-    """
     try:
         response = requests.get(
             BASE_URL,
@@ -70,20 +70,21 @@ def set_status(activation_id, status):
                 "action": "setStatus",
                 "id": activation_id,
                 "status": status
-            }
+            }, proxies=proxies
         )
         if response.status_code == 200:
             result = response.text
             print(f"👉 Ответ на установку статуса: {result}")
-            if result == "ACCESS_READY" or result == "ACCESS_CANCEL" or result == "ACCESS_ACTIVATION":
+            if result in ["ACCESS_READY", "ACCESS_CANCEL", "ACCESS_ACTIVATION"]:
                 print(f"✅ Статус успешно установлен: {status}")
                 return True
             else:
-                print(f"❌ Ошибка при установке статуса: {result}")
+                print(f"❌ Неизвестный статус: {result}")
         else:
             print(f"❌ Ошибка HTTP: {response.status_code}")
     except Exception as e:
         print(f"❌ Ошибка при установке статуса: {e}")
+        traceback.print_exc()
     return False
 
 def acquire_phone(service="go", country=6):
@@ -124,8 +125,8 @@ def get_sms_code(activation_id, timeout=150):
                     "api_key": API_KEY,
                     "action": "getStatus",
                     "id": activation_id
-                }
-            )
+                }, proxies=proxies)
+
             if response.status_code == 200:
                 result = response.text
                 print(f"👉 Ответ от SMS-активации: {result}")
@@ -152,7 +153,7 @@ def get_sms_code(activation_id, timeout=150):
             print(f"❌ Ошибка при запросе SMS-кода: {e}")
 
         # Ожидание перед следующим запросом
-        time.sleep(5)
+        time.sleep(7)
 
     # Если время ожидания истекло, отменяем активацию
     print("❌ Время ожидания истекло. Код не был получен.")

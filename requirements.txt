@@ -1,7 +1,10 @@
-psycopg2-binary       # Работа с PostgreSQL
-sqlalchemy            # ORM для удобной работы с БД
-appium-python-client  # Управление Android-эмулятором через Appium
-requests              # Для работы с API (например, sms-activate.org)
+psycopg2-binary
+sqlalchemy
+appium-python-client
+requests
 python-dotenv
 imapclient
 PyQt5
+pytest
+selenium
+

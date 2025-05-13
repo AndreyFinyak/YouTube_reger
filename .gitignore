@@ -17,7 +17,6 @@ __pycache__/
 .idea/
 *.iml
 
-# Node.js модули (если используются)
 node_modules/
 
 # Файлы, сгенерированные Appium или Selenium
@@ -33,4 +32,7 @@ page_source.xml
 .DS_Store
 test_code.py
 page_source.xml
+
 chek_element.py
+
+test_amul.py
